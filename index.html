@@ -2,21 +2,21 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Chess Repertoire v5.4 - Sync Fixed</title>
+    <title>Chess Repertoire v5.5 - Ultra-Stable</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
     <style>
-        body { background: #1a1a1a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        body { background: #1a1a1a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
         #menu { display: flex; gap: 10px; margin-bottom: 20px; background: #2d2d2d; padding: 15px; border-radius: 12px; }
-        .menu-btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; font-size: 11px; text-transform: uppercase; }
-        .build-btn { background: #e67e22; }
+        .menu-btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; font-size: 11px; text-transform: uppercase; transition: 0.2s; }
+        .build-btn { background: #e67e22; border-bottom: 3px solid #d35400; }
         #main-container { display: none; gap: 25px; width: 1100px; justify-content: center; }
         #board { width: 480px; box-shadow: 0 10px 50px rgba(0,0,0,0.5); }
         #side-panel { width: 550px; background: #2d2d2d; padding: 20px; border-radius: 12px; height: 620px; display: flex; flex-direction: column; }
         #notation-panel { flex-grow: 1; background: #111; padding: 15px; border-radius: 6px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #444; min-height: 200px; }
-        .move-link { color: #3498db; cursor: pointer; font-weight: bold; margin-right: 8px; text-decoration: none; }
+        .move-link { color: #3498db; cursor: pointer; font-weight: bold; margin-right: 8px; text-decoration: none; font-size: 15px; }
         #db-info { background: #111; padding: 12px; border-radius: 6px; border: 1px solid #444; }
         .win-bar { height: 8px; background: #444; margin: 5px 0 12px 0; display: flex; border-radius: 4px; overflow: hidden; }
-        .source-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        .source-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; color: white; }
     </style>
 </head>
 <body>
@@ -31,13 +31,13 @@
         <div id="board"></div>
         <div id="side-panel">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span id="badge" style="color:#f1c40f; font-weight:bold; font-size:11px;">CHARGEMENT...</span>
-                <span id="source-indicator" class="source-badge" style="background:#7f8c8d">WAITING</span>
+                <span id="badge" style="color:#f1c40f; font-weight:bold; font-size:11px; text-transform: uppercase;">READY</span>
+                <span id="source-indicator" class="source-badge" style="background:#7f8c8d">INIT</span>
             </div>
             <div id="notation-panel"><div id="notation-content"></div></div>
             <div id="db-info">
-                <div style="font-weight:bold; color:#7f8c8d; font-size:10px; margin-bottom:10px;">THEORY EXPLORER</div>
-                <div id="db-results">Initialisation...</div>
+                <div style="font-weight:bold; color:#7f8c8d; font-size:10px; margin-bottom:10px; text-transform: uppercase;">Theoretical Data</div>
+                <div id="db-results">Chargement de la base...</div>
             </div>
         </div>
     </div>
@@ -51,29 +51,31 @@
         let board = null;
         let currentMode = "";
         let userColor = 'white';
-        let localDb = null; // Initialisé à null pour vérification
-        const STORAGE_KEY = 'chess_repo_v54';
+        let localDb = null;
+        const STORAGE_KEY = 'chess_repo_v55';
         let repertoire = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 
-        // FONCTION DE CHARGEMENT DU JSON AU DEMARRAGE
+        // 1. CHARGEMENT DU JSON
         async function initApp() {
             try {
-                const response = await fetch('database.json?v=' + Date.now()); // Anti-cache
-                if (!response.ok) throw new Error("Fichier non trouvé");
+                const response = await fetch('database.json?v=' + Date.now());
+                if (!response.ok) throw new Error();
                 localDb = await response.json();
-                console.log("✓ JSON local chargé avec succès", localDb);
                 $('#source-indicator').text("LOCAL DB READY").css('background', '#2980b9');
-                $('#db-results').text("Base chargée. Sélectionnez un mode.");
-                $('#badge').text("READY");
+                $('#db-results').text("Base locale chargée. Prêt pour 1. c4");
             } catch (e) {
-                console.error("Erreur chargement JSON:", e);
-                localDb = {}; // Fallback vide
+                localDb = {};
                 $('#source-indicator').text("LICHESS ONLY").css('background', '#d35400');
-                $('#db-results').text("Base locale absente. Utilisation Lichess direct.");
+                $('#db-results').text("database.json introuvable.");
             }
         }
 
-        function cleanFen(fen) { return fen.split(' ').slice(0, 4).join(' '); }
+        // 2. FONCTION CLEF : SIMPLIFICATION FEN
+        function cleanFen(fen) { 
+            // On ne garde QUE les pièces et le trait (segment 0 et 1)
+            // Exemple : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w"
+            return fen.split(' ').slice(0, 2).join(' '); 
+        }
 
         window.setMode = function(mode, color) {
             currentMode = mode; userColor = color; game = new Chess();
@@ -84,7 +86,7 @@
                 onDrop: handleMove,
                 pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
             });
-            $('#badge').text(`${mode.toUpperCase()} - ${color.toUpperCase()}`);
+            $('#badge').text(`${mode} - ${color}`);
             renderNotation();
             updateTheory(game.fen());
         };
@@ -111,15 +113,16 @@
 
         async function updateTheory(fen) {
             const cFen = cleanFen(fen);
-            
-            // 1. Priorité absolue au JSON local
+            console.log("Recherche FEN dans JSON :", cFen); // Debug Console
+
+            // Priorité au JSON Local
             if (localDb && localDb[cFen]) {
                 $('#source-indicator').text("LOCAL DATA").css('background', '#2980b9');
                 displayResults(localDb[cFen]);
                 return;
             }
 
-            // 2. Si pas dans le JSON, on tente Lichess (si pas bloqué)
+            // Secours Lichess
             const url = `https://explorer.lichess.ovh/lichess?speeds=classical&ratings=1600,1800,2000,2200,2400&fen=${encodeURIComponent(cFen)}`;
             try {
                 const res = await fetch(url);
@@ -135,7 +138,7 @@
                 displayResults(moves);
             } catch (e) {
                 $('#source-indicator').text("NO DATA").css('background', '#c0392b');
-                $('#db-results').html("Position inconnue (Base locale & Lichess HS).");
+                $('#db-results').html("Coup inconnu de la base locale.");
             }
         }
 
@@ -151,11 +154,11 @@
                             <div style="width:${m.loss}%; background:#000"></div>
                          </div>`;
             });
-            $('#db-results').html(html || "Aucun coup suggéré.");
+            $('#db-results').html(html || "Aucune donnée.");
         }
 
         function renderNotation() {
-            const startFen = cleanFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -");
+            const startFen = cleanFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w");
             const content = document.getElementById('notation-content');
             content.innerHTML = "";
             buildNotationHtml(startFen, content, 1);
@@ -166,7 +169,7 @@
             moves.forEach((m, i) => {
                 const span = document.createElement('span');
                 span.className = 'move-link';
-                const isWhite = fen.includes(' w ');
+                const isWhite = fen.includes(' w');
                 span.innerHTML = (isWhite ? moveNum + ". " : "") + m.san;
                 span.onclick = () => { game.load(m.next); board.position(game.fen()); updateTheory(game.fen()); };
                 container.appendChild(span);
@@ -174,9 +177,8 @@
             });
         }
 
-        function clearData() { if(confirm("Effacer votre répertoire ?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
+        function clearData() { if(confirm("Effacer tout ?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
 
-        // LANCEMENT
         initApp();
     </script>
 </body>
