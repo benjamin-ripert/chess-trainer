@@ -1,0 +1,19 @@
+{
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -": [
+    {"san": "c4", "win": 38, "draw": 36, "loss": 26},
+    {"san": "e4", "win": 40, "draw": 30, "loss": 30},
+    {"san": "d4", "win": 39, "draw": 34, "loss": 27},
+    {"san": "Nf3", "win": 37, "draw": 39, "loss": 24}
+  ],
+  "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq -": [
+    {"san": "e5", "win": 28, "draw": 35, "loss": 37},
+    {"san": "c5", "win": 25, "draw": 38, "loss": 37},
+    {"san": "Nf6", "win": 26, "draw": 40, "loss": 34},
+    {"san": "e6", "win": 27, "draw": 36, "loss": 37}
+  ],
+  "rnbqkbnr/pppp1ppp/8/4p3/2P5/8/PP1PPPPP/RNBQKBNR w KQkq -": [
+    {"san": "Nc3", "win": 38, "draw": 34, "loss": 28},
+    {"san": "g3", "win": 37, "draw": 36, "loss": 27},
+    {"san": "Nf3", "win": 36, "draw": 37, "loss": 27}
+  ]
+}
