@@ -8,9 +8,5 @@
     {"san": "e5", "win": 28, "draw": 35, "loss": 37},
     {"san": "c5", "win": 25, "draw": 38, "loss": 37},
     {"san": "Nf6", "win": 26, "draw": 40, "loss": 34}
-  ],
-  "rnbqkbnr/pppp1ppp/8/4p3/2P5/8/PP1PPPPP/RNBQKBNR w KQkq -": [
-    {"san": "Nc3", "win": 38, "draw": 34, "loss": 28},
-    {"san": "g3", "win": 37, "draw": 36, "loss": 27}
   ]
 }
