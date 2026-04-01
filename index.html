@@ -2,87 +2,44 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Chess Repertoire v5.2 - VIOLET EDITION</title>
+    <title>Chess Repertoire v5.3 - Hybrid Database</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
     <style>
-        /* CHANGEMENT DE COULEUR RADICAL POUR TEST DE CACHE */
-        body { 
-            background: #4b0082; /* Deep Indigo / Purple */
-            color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            padding: 20px; 
-            margin: 0; 
-        }
-        
-        #menu { display: flex; gap: 10px; margin-bottom: 20px; background: #310054; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        
-        .menu-btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; font-size: 11px; text-transform: uppercase; transition: 0.2s; }
-        .build-btn { background: #e67e22; border-bottom: 3px solid #d35400; }
-        .train-btn { background: #27ae60; border-bottom: 3px solid #1e8449; }
-        .active { border: 2px solid #f1c40f; transform: translateY(2px); box-shadow: none; }
-
-        #main-container { display: none; gap: 25px; width: 1100px; justify-content: center; margin-top: 10px; }
-        #board { width: 480px; box-shadow: 0 10px 50px rgba(0,0,0,0.8); border: 5px solid #310054; }
-        #side-panel { width: 550px; background: #310054; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; height: 620px; }
-        
-        #notation-panel { flex-grow: 1; background: #1a002e; padding: 15px; border-radius: 6px; border: 1px solid #5d00a3; overflow-y: auto; font-size: 14px; line-height: 1.7; margin-bottom: 15px; }
-        .move-link { color: #a29bfe; cursor: pointer; font-weight: bold; padding: 1px 3px; border-radius: 3px; }
-        .move-link:hover { background: #4b0082; color: #f1c40f; }
-        
-        #db-info { background: #1a002e; padding: 12px; border-radius: 6px; font-size: 12px; border: 1px solid #5d00a3; min-height: 120px; }
-        .win-bar { height: 6px; background: #555; margin: 4px 0 8px 0; display: flex; border-radius: 3px; overflow: hidden; border: 1px solid #000; }
-
-        .verdict { padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-top: 10px; display: none; }
-        .correct { background: #27ae60; }
-        
-        #welcome-screen { text-align: center; padding: 60px; background: #310054; border-radius: 15px; margin-top: 40px; width: 600px; border: 2px dashed #a29bfe; }
-        .storage-btns { margin-top: 15px; display: flex; gap: 10px; }
-        .io-btn { background: #6c5ce7; font-size: 10px; padding: 5px 10px; }
-        .diag-btn { background: #d63031; font-size: 9px; margin-top: 5px; }
+        body { background: #1a1a1a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        #menu { display: flex; gap: 10px; margin-bottom: 20px; background: #2d2d2d; padding: 15px; border-radius: 12px; }
+        .menu-btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; font-size: 11px; text-transform: uppercase; }
+        .build-btn { background: #e67e22; } .train-btn { background: #27ae60; }
+        #main-container { display: none; gap: 25px; width: 1100px; justify-content: center; }
+        #board { width: 480px; box-shadow: 0 10px 50px rgba(0,0,0,0.5); }
+        #side-panel { width: 550px; background: #2d2d2d; padding: 20px; border-radius: 12px; height: 620px; display: flex; flex-direction: column; }
+        #notation-panel { flex-grow: 1; background: #111; padding: 15px; border-radius: 6px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #444; }
+        .move-link { color: #3498db; cursor: pointer; font-weight: bold; margin-right: 5px; }
+        #db-info { background: #111; padding: 12px; border-radius: 6px; border: 1px solid #444; }
+        .win-bar { height: 8px; background: #444; margin: 5px 0; display: flex; border-radius: 4px; overflow: hidden; }
+        .source-badge { font-size: 9px; padding: 2px 5px; border-radius: 3px; background: #555; }
     </style>
 </head>
 <body>
 
     <div id="menu">
-        <button id="btn-bw" class="menu-btn build-btn" onclick="setMode('build', 'white')">⚒ Build White</button>
-        <button id="btn-bb" class="menu-btn build-btn" onclick="setMode('build', 'black')">⚒ Build Black</button>
-        <button id="btn-tw" class="menu-btn train-btn" onclick="setMode('train', 'white')">🎓 Train White</button>
-        <button id="btn-tb" class="menu-btn train-btn" onclick="setMode('train', 'black')">🎓 Train Black</button>
+        <button class="menu-btn build-btn" onclick="setMode('build', 'white')">⚒ Build White</button>
+        <button class="menu-btn build-btn" onclick="setMode('build', 'black')">⚒ Build Black</button>
+        <button class="menu-btn train-btn" onclick="setMode('train', 'white')">🎓 Train White</button>
+        <button class="menu-btn train-btn" onclick="setMode('train', 'black')">🎓 Train Black</button>
         <button class="menu-btn" style="background:#c0392b" onclick="clearData()">🗑 Reset</button>
-        <button class="menu-btn" style="background:#7f8c8d" onclick="location.reload()">⏹ Stop</button>
-    </div>
-
-    <div id="welcome-screen">
-        <h1 style="color:#f1c40f">Chess Repertoire v5.2</h1>
-        <p>EDITION VIOLETTE (Diagnostic Cache)</p>
-        <div class="storage-btns" style="justify-content: center;">
-            <button class="menu-btn io-btn" onclick="exportJSON()">📥 Export JSON</button>
-            <button class="menu-btn io-btn" onclick="importJSON()">📤 Import JSON</button>
-        </div>
     </div>
 
     <div id="main-container">
-        <div>
-            <div id="board"></div>
-            <div id="verdict-msg" class="verdict"></div>
-        </div>
+        <div id="board"></div>
         <div id="side-panel">
-            <div id="badge" style="color:#f1c40f; font-weight:bold; margin-bottom:10px; text-transform: uppercase; font-size: 11px;">Mode Selection</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span id="badge" style="color:#f1c40f; font-weight:bold; font-size:11px;">MODE SELECTION</span>
+                <span id="source-indicator" class="source-badge">OFFLINE</span>
+            </div>
             <div id="notation-panel"><div id="notation-content"></div></div>
             <div id="db-info">
-                <div style="font-weight:bold; color:#a29bfe; margin-bottom:8px; text-transform:uppercase; font-size:10px; display:flex; justify-content:space-between;">
-                    <span>Lichess Statistics</span>
-                    <span id="loading-spinner" style="display:none; color:#f1c40f;">Loading...</span>
-                </div>
-                <div id="db-results">Prêt.</div>
-                <button class="menu-btn diag-btn" onclick="runDiagnostic()">⚡ Test Connexion Direct</button>
-            </div>
-            <div class="storage-btns">
-                <button class="menu-btn io-btn" onclick="exportJSON()">📥 Export</button>
-                <button class="menu-btn io-btn" onclick="importJSON()">📤 Import</button>
+                <div style="font-weight:bold; color:#7f8c8d; font-size:10px; margin-bottom:10px;">THEORETICAL REPLIES</div>
+                <div id="db-results">Prêt. Jouez un coup.</div>
             </div>
         </div>
     </div>
@@ -96,18 +53,24 @@
         let board = null;
         let currentMode = "";
         let userColor = 'white';
-        const STORAGE_KEY = 'chess_repo_v52';
+        let localDb = {}; // Contiendra le futur fichier database.json
+        const STORAGE_KEY = 'chess_repo_v53';
         let repertoire = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+
+        // Charger la base de données locale si elle existe sur le serveur
+        fetch('database.json')
+            .then(response => response.json())
+            .then(data => { localDb = data; console.log("Base locale chargée."); })
+            .catch(e => console.log("Pas de base locale trouvée."));
 
         function cleanFen(fen) { return fen.split(' ').slice(0, 4).join(' '); }
 
         window.setMode = function(mode, color) {
             currentMode = mode; userColor = color; game = new Chess();
-            $('#welcome-screen').hide(); $('#main-container').css('display', 'flex');
-            $('.menu-btn').removeClass('active'); $(`#btn-${mode[0]}${color[0]}`).addClass('active');
+            $('#main-container').css('display', 'flex');
             initBoard();
-            $('#badge').text(`${mode.toUpperCase()} MODE - ${color.toUpperCase()}`);
-            if (mode === 'build') renderNotation(); else loadTestPosition();
+            $('#badge').text(`${mode.toUpperCase()} - ${color.toUpperCase()}`);
+            renderNotation();
         };
 
         function initBoard() {
@@ -128,9 +91,7 @@
             if (currentMode === 'build') {
                 saveMove(fenBefore, source + target, move.san);
                 renderNotation();
-                if (game.turn() !== userColor[0]) await fetchLichessData(game.fen());
-            } else if (currentMode === 'train') {
-                checkTrainMove(fenBefore, source + target);
+                await updateTheory(game.fen());
             }
         }
 
@@ -143,53 +104,49 @@
             }
         }
 
-        async function fetchLichessData(fen) {
-            $('#loading-spinner').show();
-            const url = `https://explorer.lichess.ovh/lichess?variant=standard&speeds=classical&ratings=1600,1800,2000,2200,2400&fen=${encodeURIComponent(cleanFen(fen))}`;
+        async function updateTheory(fen) {
+            const cFen = cleanFen(fen);
+            
+            // 1. Tenter la base locale d'abord
+            if (localDb[cFen]) {
+                $('#source-indicator').text("LOCAL DB").css('background', '#2980b9');
+                displayResults(localDb[cFen]);
+                return;
+            }
 
+            // 2. Sinon tenter Lichess
+            const url = `https://explorer.lichess.ovh/lichess?speeds=classical&ratings=1600,1800,2000,2200,2400&fen=${encodeURIComponent(cFen)}`;
             try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error("HTTP " + response.status);
-                const data = await response.json();
-                $('#loading-spinner').hide();
-                displayDbResults(data.moves);
+                const res = await fetch(url);
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                $('#source-indicator').text("LICHESS LIVE").css('background', '#27ae60');
                 
-                if (game.turn() !== userColor[0] && data.moves.length > 0) {
-                    const top = data.moves[0];
-                    setTimeout(() => {
-                        const fb = cleanFen(game.fen());
-                        const am = game.move(top.uci, {sloppy:true});
-                        if (am) { board.position(game.fen()); saveMove(fb, top.uci, am.san); renderNotation(); fetchLichessData(game.fen()); }
-                    }, 800);
-                }
-            } catch (e) { 
-                $('#loading-spinner').hide(); 
-                $('#db-results').html(`<span style='color:#ff7675'>Erreur API. Testez le bouton rouge ci-dessous.</span>`);
+                // Formater les données Lichess pour l'affichage
+                const moves = data.moves.map(m => ({
+                    san: m.san,
+                    win: Math.round((m.white/ (m.white+m.draws+m.black))*100),
+                    draw: Math.round((m.draws/ (m.white+m.draws+m.black))*100),
+                    loss: Math.round((m.black/ (m.white+m.draws+m.black))*100)
+                }));
+                displayResults(moves);
+            } catch (e) {
+                $('#source-indicator').text("OFFLINE (BLOCK)").css('background', '#c0392b');
+                $('#db-results').html("Aucune donnée locale pour cette position.");
             }
         }
 
-        window.runDiagnostic = async function() {
-            $('#db-results').html("Diagnostic en cours...");
-            try {
-                const testUrl = "https://explorer.lichess.ovh/lichess?speeds=classical&ratings=2000&fen=rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR%20w%20KQkq%20-";
-                const response = await fetch(testUrl);
-                if (response.ok) {
-                    $('#db-results').html("<span style='color:#55efc4'>✓ Lichess répond ! Le problème est peut-être résolu ou intermittent.</span>");
-                } else {
-                    $('#db-results').html(`<span style='color:#ff7675'>✗ Erreur Serveur : ${response.status}</span>`);
-                }
-            } catch (e) {
-                $('#db-results').html(`<span style='color:#ff7675'>✗ Blocage Total : ${e.message}. Vérifiez Antivirus/Firewall.</span>`);
-            }
-        };
-
-        function displayDbResults(moves) {
-            if (!moves || moves.length === 0) { $('#db-results').html("Fin de théorie."); return; }
+        function displayResults(moves) {
             let html = "";
             moves.slice(0, 3).forEach(m => {
-                const total = m.white + m.draws + m.black;
-                const wP = Math.round((m.white/total)*100), dP = Math.round((m.draws/total)*100), bP = 100-wP-dP;
-                html += `<div class="db-row"><span><strong>${m.san}</strong> <small>(${total.toLocaleString()})</small></span><span>W:${wP}% D:${dP}% B:${bP}%</span></div><div class="win-bar"><div style="width:${wP}%; background:#fff"></div><div style="width:${dP}%; background:#7f8c8d"></div><div style="width:${bP}%; background:#000"></div></div>`;
+                html += `<div style="display:flex; justify-content:space-between; font-size:12px;">
+                            <b>${m.san}</b> <span>W:${m.win}% D:${m.draw}% B:${m.loss}%</span>
+                         </div>
+                         <div class="win-bar">
+                            <div style="width:${m.win}%; background:#fff"></div>
+                            <div style="width:${m.draw}%; background:#7f8c8d"></div>
+                            <div style="width:${m.loss}%; background:#000"></div>
+                         </div>`;
             });
             $('#db-results').html(html);
         }
@@ -204,61 +161,17 @@
         function buildNotationHtml(fen, container, moveNum) {
             const moves = repertoire[fen] || [];
             moves.forEach((m, i) => {
-                const wrapper = document.createElement(i === 0 ? 'span' : 'div');
-                if (i > 0) wrapper.className = 'variation';
-                const isWhite = fen.includes(' w ');
                 const span = document.createElement('span');
                 span.className = 'move-link';
-                span.innerHTML = (isWhite ? `<span class="move-number">${moveNum}.</span>` : (i>0 ? `<span class="move-number">${moveNum}...</span>` : "")) + m.san + " ";
-                span.onclick = () => { game.load(m.next); board.position(game.fen()); fetchLichessData(game.fen()); };
-                wrapper.appendChild(span);
-                container.appendChild(wrapper);
-                buildNotationHtml(m.next, wrapper, isWhite ? moveNum : moveNum + 1);
+                const isWhite = fen.includes(' w ');
+                span.innerHTML = (isWhite ? moveNum + ". " : "") + m.san;
+                span.onclick = () => { game.load(m.next); board.position(game.fen()); updateTheory(game.fen()); };
+                container.appendChild(span);
+                buildNotationHtml(m.next, container, isWhite ? moveNum : moveNum + 1);
             });
         }
 
-        function checkTrainMove(fenBefore, uci) {
-            const moves = repertoire[fenBefore] || [], match = moves.find(m => m.uci === uci), msg = $('#verdict-msg');
-            if (match) {
-                msg.text("✓ OK").attr('class', 'verdict correct').fadeIn();
-                const next = repertoire[cleanFen(game.fen())] || [];
-                if (next.length > 0) { setTimeout(() => { game.move(next[0].uci, {sloppy: true}); board.position(game.fen()); }, 600); }
-            } else msg.text("⚠ HORS REPERTOIRE").attr('class', 'verdict out-of-repo').fadeIn();
-        }
-
-        function loadTestPosition() {
-            game = new Chess(); board.position('start'); $('#verdict-msg').hide();
-            if (userColor === 'black') {
-                const r = repertoire[cleanFen(game.fen())] || [];
-                if (r.length > 0) { setTimeout(() => { game.move(r[0].uci, {sloppy:true}); board.position(game.fen()); }, 600); }
-            }
-        }
-
-        window.exportJSON = function() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(repertoire));
-            const dlAnchorElem = document.createElement('a');
-            dlAnchorElem.setAttribute("href", dataStr);
-            dlAnchorElem.setAttribute("download", "repertoire.json");
-            dlAnchorElem.click();
-        };
-
-        window.importJSON = function() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.onchange = e => {
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.readAsText(file, 'UTF-8');
-                reader.onload = readerEvent => {
-                    repertoire = JSON.parse(readerEvent.target.result);
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(repertoire));
-                    location.reload();
-                }
-            }
-            input.click();
-        };
-
-        window.clearData = function() { if (confirm("Reset?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } };
+        function clearData() { if(confirm("Reset?")) { localStorage.clear(); location.reload(); } }
     </script>
 </body>
 </html>
