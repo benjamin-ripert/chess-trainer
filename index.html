@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chess Repertoire v4.9 - GitHub Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+    <style>
+        body {
+            background: #2c3e50;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        #menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #34495e;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .menu-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 11px;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+
+        .build-btn {
+            background: #e67e22;
+            border-bottom: 3px solid #d35400;
+        }
+
+        .train-btn {
+            background: #27ae60;
+            border-bottom: 3px solid #1e8449;
+        }
+
+        .active {
+            border: 2px solid #f1c40f;
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        #main-container {
+            display: none;
+            gap: 25px;
+            width: 1100px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        #board {
+            width: 480px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.7);
+        }
+
+        #side-panel {
+            width: 550px;
+            background: #34495e;
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            height: 620px;
+        }
+
+        #notation-panel {
+            flex-grow: 1;
+            background: #1a252f;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        .move-link {
+            color: #3498db;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 1px 3px;
+            border-radius: 3px;
+        }
+
+        .move-link:hover {
+            background: #34495e;
+            color: #f1c40f;
+        }
+
+        .variation {
+            margin-left: 15px;
+            padding-left: 8px;
+            border-left: 2px solid #444;
+            color: #bdc3c7;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .move-number {
+            color: #7f8c8d;
+            margin-right: 3px;
+        }
+
+        #db-info {
+            background: #1a252f;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            border: 1px solid #444;
+            min-height: 120px;
+        }
+
+        .db-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            align-items: center;
+        }
+
+        .win-bar {
+            height: 6px;
+            background: #555;
+            margin: 4px 0 8px 0;
+            display: flex;
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid #000;
+        }
+
+        .verdict {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .correct {
+            background: #27ae60;
+        }
+
+        .out-of-repo {
+            background: #f39c12;
+            color: black;
+        }
+
+        #welcome-screen {
+            text-align: center;
+            padding: 60px;
+            background: #34495e;
+            border-radius: 15px;
+            margin-top: 40px;
+            width: 600px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="menu">
+        <button id="btn-bw" class="menu-btn build-btn" onclick="setMode('build', 'white')">⚒ Build White</button>
+        <button id="btn-bb" class="menu-btn build-btn" onclick="setMode('build', 'black')">⚒ Build Black</button>
+        <button id="btn-tw" class="menu-btn train-btn" onclick="setMode('train', 'white')">🎓 Train White</button>
+        <button id="btn-tb" class="menu-btn train-btn" onclick="setMode('train', 'black')">🎓 Train Black</button>
+        <button class="menu-btn" style="background:#c0392b" onclick="clearData()">🗑 Reset</button>
+        <button class="menu-btn" style="background:#7f8c8d" onclick="location.reload()">⏹ Stop</button>
+    </div>
+
+    <div id="welcome-screen">
+        <h1>Chess Repertoire v4.9</h1>
+        <p>Lichess Integrated (Classical 1500-2400 Elo). Hosted on GitHub.</p>
+    </div>
+
+    <div id="main-container">
+        <div>
+            <div id="board"></div>
+            <div id="verdict-msg" class="verdict"></div>
+        </div>
+        <div id="side-panel">
+            <div id="badge"
+                style="color:#f1c40f; font-weight:bold; margin-bottom:10px; text-transform: uppercase; font-size: 11px;">
+                Select Mode</div>
+            <div id="notation-panel">
+                <div id="notation-content"></div>
+            </div>
+            <div id="db-info">
+                <div
+                    style="font-weight:bold; color:#7f8c8d; margin-bottom:8px; text-transform:uppercase; font-size:10px; display:flex; justify-content:space-between;">
+                    <span>Lichess Popular Replies</span>
+                    <span id="loading-spinner" style="display:none; color:#3498db;">Updating...</span>
+                </div>
+                <div id="db-results">Waiting for moves...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+
+    <script>
+        let game = new Chess();
+        let board = null;
+        let currentMode = "";
+        let userColor = 'white';
+        const STORAGE_KEY = 'chess_repo_v49';
+        let repertoire = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+
+        function cleanFen(fen) { return fen.split(' ').slice(0, 4).join(' '); }
+
+        window.setMode = function (mode, color) {
+            currentMode = mode; userColor = color; game = new Chess();
+            $('#welcome-screen').hide(); $('#main-container').css('display', 'flex');
+            $('.menu-btn').removeClass('active'); $(`#btn-${mode[0]}${color[0]}`).addClass('active');
+            initBoard();
+            $('#badge').text(`${mode.toUpperCase()} MODE - ${color.toUpperCase()}`);
+            if (mode === 'build') renderNotation(); else loadTestPosition();
+        };
+
+        function initBoard() {
+            if (board) board.destroy();
+            board = ChessBoard('board', {
+                draggable: true, position: 'start', orientation: userColor,
+                onDragStart: (s, p) => {
+                    if (game.game_over()) return false;
+                    if ((game.turn() === 'w' && p.search(/^b/) !== -1) || (game.turn() === 'b' && p.search(/^w/) !== -1)) return false;
+                },
+                onDrop: handleMove,
+                pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+            });
+        }
+
+        async function handleMove(source, target) {
+            const fenBefore = cleanFen(game.fen());
+            const move = game.move({ from: source, to: target, promotion: 'q' });
+            if (move === null) return 'snapback';
+            window.setTimeout(() => board.position(game.fen(), false), 100);
+
+            if (currentMode === 'build') {
+                saveMove(fenBefore, source + target, move.san);
+                renderNotation();
+                if (game.turn() !== userColor[0]) await fetchLichessData(game.fen());
+            } else if (currentMode === 'train') {
+                checkTrainMove(fenBefore, source + target);
+            }
+        }
+
+        function saveMove(fen, uci, san) {
+            const nextFen = cleanFen(game.fen());
+            if (!repertoire[fen]) repertoire[fen] = [];
+            if (!repertoire[fen].some(m => m.uci === uci)) {
+                repertoire[fen].push({ uci: uci, san: san, next: nextFen });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(repertoire));
+            }
+        }
+
+        async function fetchLichessData(fen) {
+            $('#loading-spinner').show();
+            const url = `https://explorer.lichess.ovh/lichess?variant=standard&speeds=classical&ratings=1600,1800,2000,2200,2400&fen=${encodeURIComponent(cleanFen(fen))}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("HTTP " + response.status);
+                const data = await response.json();
+                $('#loading-spinner').hide();
+                if (data.opening) $('#badge').text(`${currentMode.toUpperCase()} - ${data.opening.name}`);
+                displayDbResults(data.moves);
+
+                if (game.turn() !== userColor[0] && data.moves.length > 0) {
+                    const top = data.moves[0];
+                    setTimeout(() => {
+                        const fb = cleanFen(game.fen());
+                        const am = game.move(top.uci, { sloppy: true });
+                        if (am) { board.position(game.fen()); saveMove(fb, top.uci, am.san); renderNotation(); fetchLichessData(game.fen()); }
+                    }, 800);
+                }
+            } catch (e) { $('#loading-spinner').hide(); $('#db-results').html("Lichess API connection failed."); }
+        }
+
+        function displayDbResults(moves) {
+            if (!moves || moves.length === 0) { $('#db-results').html("End of theory."); return; }
+            let html = "";
+            moves.slice(0, 3).forEach(m => {
+                const total = m.white + m.draws + m.black;
+                const wP = Math.round((m.white / total) * 100), dP = Math.round((m.draws / total) * 100), bP = 100 - wP - dP;
+                html += `<div class="db-row"><span><strong>${m.san}</strong> <small>(${total.toLocaleString()})</small></span><span>W:${wP}% D:${dP}% B:${bP}%</span></div><div class="win-bar"><div style="width:${wP}%; background:#fff"></div><div style="width:${dP}%; background:#7f8c8d"></div><div style="width:${bP}%; background:#000"></div></div>`;
+            });
+            $('#db-results').html(html);
+        }
+
+        function renderNotation() {
+            const startFen = cleanFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -");
+            const content = document.getElementById('notation-content');
+            content.innerHTML = "";
+            buildNotationHtml(startFen, content, 1);
+        }
+
+        function buildNotationHtml(fen, container, moveNum) {
+            const moves = repertoire[fen] || [];
+            moves.forEach((m, i) => {
+                const wrapper = document.createElement(i === 0 ? 'span' : 'div');
+                if (i > 0) wrapper.className = 'variation';
+                const isWhite = fen.includes(' w ');
+                const span = document.createElement('span');
+                span.className = 'move-link';
+                span.innerHTML = (isWhite ? `<span class="move-number">${moveNum}.</span>` : (i > 0 ? `<span class="move-number">${moveNum}...</span>` : "")) + m.san + " ";
+                span.onclick = () => { game.load(m.next); board.position(game.fen()); fetchLichessData(game.fen()); };
+                wrapper.appendChild(span);
+                container.appendChild(wrapper);
+                buildNotationHtml(m.next, wrapper, isWhite ? moveNum : moveNum + 1);
+            });
+        }
+
+        function checkTrainMove(fenBefore, uci) {
+            const moves = repertoire[fenBefore] || [], match = moves.find(m => m.uci === uci), msg = $('#verdict-msg');
+            if (match) {
+                msg.text("✓ REPERTOIRE").attr('class', 'verdict correct').fadeIn();
+                const next = repertoire[cleanFen(game.fen())] || [];
+                if (next.length > 0) { setTimeout(() => { game.move(next[0].uci, { sloppy: true }); board.position(game.fen()); msg.text("YOUR MOVE"); }, 600); }
+            } else msg.text("⚠ OUT OF REPERTOIRE").attr('class', 'verdict out-of-repo').fadeIn();
+        }
+
+        function loadTestPosition() {
+            game = new Chess(); board.position('start'); $('#verdict-msg').hide();
+            if (userColor === 'black') {
+                const r = repertoire[cleanFen(game.fen())] || [];
+                if (r.length > 0) { setTimeout(() => { game.move(r[0].uci, { sloppy: true }); board.position(game.fen()); }, 600); }
+            }
+        }
+
+        window.clearData = function () { if (confirm("Reset repertoire?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } };
+    </script>
+</body>
+
+</html>
