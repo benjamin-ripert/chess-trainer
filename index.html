@@ -2,21 +2,21 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Chess Repertoire v5.3 - Hybrid Database</title>
+    <title>Chess Repertoire v5.4 - Sync Fixed</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
     <style>
         body { background: #1a1a1a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         #menu { display: flex; gap: 10px; margin-bottom: 20px; background: #2d2d2d; padding: 15px; border-radius: 12px; }
         .menu-btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; font-size: 11px; text-transform: uppercase; }
-        .build-btn { background: #e67e22; } .train-btn { background: #27ae60; }
+        .build-btn { background: #e67e22; }
         #main-container { display: none; gap: 25px; width: 1100px; justify-content: center; }
         #board { width: 480px; box-shadow: 0 10px 50px rgba(0,0,0,0.5); }
         #side-panel { width: 550px; background: #2d2d2d; padding: 20px; border-radius: 12px; height: 620px; display: flex; flex-direction: column; }
-        #notation-panel { flex-grow: 1; background: #111; padding: 15px; border-radius: 6px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #444; }
-        .move-link { color: #3498db; cursor: pointer; font-weight: bold; margin-right: 5px; }
+        #notation-panel { flex-grow: 1; background: #111; padding: 15px; border-radius: 6px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #444; min-height: 200px; }
+        .move-link { color: #3498db; cursor: pointer; font-weight: bold; margin-right: 8px; text-decoration: none; }
         #db-info { background: #111; padding: 12px; border-radius: 6px; border: 1px solid #444; }
-        .win-bar { height: 8px; background: #444; margin: 5px 0; display: flex; border-radius: 4px; overflow: hidden; }
-        .source-badge { font-size: 9px; padding: 2px 5px; border-radius: 3px; background: #555; }
+        .win-bar { height: 8px; background: #444; margin: 5px 0 12px 0; display: flex; border-radius: 4px; overflow: hidden; }
+        .source-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -24,8 +24,6 @@
     <div id="menu">
         <button class="menu-btn build-btn" onclick="setMode('build', 'white')">⚒ Build White</button>
         <button class="menu-btn build-btn" onclick="setMode('build', 'black')">⚒ Build Black</button>
-        <button class="menu-btn train-btn" onclick="setMode('train', 'white')">🎓 Train White</button>
-        <button class="menu-btn train-btn" onclick="setMode('train', 'black')">🎓 Train Black</button>
         <button class="menu-btn" style="background:#c0392b" onclick="clearData()">🗑 Reset</button>
     </div>
 
@@ -33,13 +31,13 @@
         <div id="board"></div>
         <div id="side-panel">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span id="badge" style="color:#f1c40f; font-weight:bold; font-size:11px;">MODE SELECTION</span>
-                <span id="source-indicator" class="source-badge">OFFLINE</span>
+                <span id="badge" style="color:#f1c40f; font-weight:bold; font-size:11px;">CHARGEMENT...</span>
+                <span id="source-indicator" class="source-badge" style="background:#7f8c8d">WAITING</span>
             </div>
             <div id="notation-panel"><div id="notation-content"></div></div>
             <div id="db-info">
-                <div style="font-weight:bold; color:#7f8c8d; font-size:10px; margin-bottom:10px;">THEORETICAL REPLIES</div>
-                <div id="db-results">Prêt. Jouez un coup.</div>
+                <div style="font-weight:bold; color:#7f8c8d; font-size:10px; margin-bottom:10px;">THEORY EXPLORER</div>
+                <div id="db-results">Initialisation...</div>
             </div>
         </div>
     </div>
@@ -53,34 +51,43 @@
         let board = null;
         let currentMode = "";
         let userColor = 'white';
-        let localDb = {}; // Contiendra le futur fichier database.json
-        const STORAGE_KEY = 'chess_repo_v53';
+        let localDb = null; // Initialisé à null pour vérification
+        const STORAGE_KEY = 'chess_repo_v54';
         let repertoire = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 
-        // Charger la base de données locale si elle existe sur le serveur
-        fetch('database.json')
-            .then(response => response.json())
-            .then(data => { localDb = data; console.log("Base locale chargée."); })
-            .catch(e => console.log("Pas de base locale trouvée."));
+        // FONCTION DE CHARGEMENT DU JSON AU DEMARRAGE
+        async function initApp() {
+            try {
+                const response = await fetch('database.json?v=' + Date.now()); // Anti-cache
+                if (!response.ok) throw new Error("Fichier non trouvé");
+                localDb = await response.json();
+                console.log("✓ JSON local chargé avec succès", localDb);
+                $('#source-indicator').text("LOCAL DB READY").css('background', '#2980b9');
+                $('#db-results').text("Base chargée. Sélectionnez un mode.");
+                $('#badge').text("READY");
+            } catch (e) {
+                console.error("Erreur chargement JSON:", e);
+                localDb = {}; // Fallback vide
+                $('#source-indicator').text("LICHESS ONLY").css('background', '#d35400');
+                $('#db-results').text("Base locale absente. Utilisation Lichess direct.");
+            }
+        }
 
         function cleanFen(fen) { return fen.split(' ').slice(0, 4).join(' '); }
 
         window.setMode = function(mode, color) {
             currentMode = mode; userColor = color; game = new Chess();
             $('#main-container').css('display', 'flex');
-            initBoard();
-            $('#badge').text(`${mode.toUpperCase()} - ${color.toUpperCase()}`);
-            renderNotation();
-        };
-
-        function initBoard() {
             if (board) board.destroy();
             board = ChessBoard('board', {
                 draggable: true, position: 'start', orientation: userColor,
                 onDrop: handleMove,
                 pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
             });
-        }
+            $('#badge').text(`${mode.toUpperCase()} - ${color.toUpperCase()}`);
+            renderNotation();
+            updateTheory(game.fen());
+        };
 
         async function handleMove(source, target) {
             const fenBefore = cleanFen(game.fen());
@@ -88,11 +95,9 @@
             if (move === null) return 'snapback';
             window.setTimeout(() => board.position(game.fen(), false), 100);
 
-            if (currentMode === 'build') {
-                saveMove(fenBefore, source + target, move.san);
-                renderNotation();
-                await updateTheory(game.fen());
-            }
+            saveMove(fenBefore, source + target, move.san);
+            renderNotation();
+            await updateTheory(game.fen());
         }
 
         function saveMove(fen, uci, san) {
@@ -107,39 +112,37 @@
         async function updateTheory(fen) {
             const cFen = cleanFen(fen);
             
-            // 1. Tenter la base locale d'abord
-            if (localDb[cFen]) {
-                $('#source-indicator').text("LOCAL DB").css('background', '#2980b9');
+            // 1. Priorité absolue au JSON local
+            if (localDb && localDb[cFen]) {
+                $('#source-indicator').text("LOCAL DATA").css('background', '#2980b9');
                 displayResults(localDb[cFen]);
                 return;
             }
 
-            // 2. Sinon tenter Lichess
+            // 2. Si pas dans le JSON, on tente Lichess (si pas bloqué)
             const url = `https://explorer.lichess.ovh/lichess?speeds=classical&ratings=1600,1800,2000,2200,2400&fen=${encodeURIComponent(cFen)}`;
             try {
                 const res = await fetch(url);
                 if (!res.ok) throw new Error();
                 const data = await res.json();
                 $('#source-indicator').text("LICHESS LIVE").css('background', '#27ae60');
-                
-                // Formater les données Lichess pour l'affichage
                 const moves = data.moves.map(m => ({
                     san: m.san,
-                    win: Math.round((m.white/ (m.white+m.draws+m.black))*100),
-                    draw: Math.round((m.draws/ (m.white+m.draws+m.black))*100),
-                    loss: Math.round((m.black/ (m.white+m.draws+m.black))*100)
+                    win: Math.round((m.white/(m.white+m.draws+m.black))*100),
+                    draw: Math.round((m.draws/(m.white+m.draws+m.black))*100),
+                    loss: Math.round((m.black/(m.white+m.draws+m.black))*100)
                 }));
                 displayResults(moves);
             } catch (e) {
-                $('#source-indicator').text("OFFLINE (BLOCK)").css('background', '#c0392b');
-                $('#db-results').html("Aucune donnée locale pour cette position.");
+                $('#source-indicator').text("NO DATA").css('background', '#c0392b');
+                $('#db-results').html("Position inconnue (Base locale & Lichess HS).");
             }
         }
 
         function displayResults(moves) {
             let html = "";
-            moves.slice(0, 3).forEach(m => {
-                html += `<div style="display:flex; justify-content:space-between; font-size:12px;">
+            moves.slice(0, 4).forEach(m => {
+                html += `<div style="display:flex; justify-content:space-between; font-size:12px; margin-top:5px;">
                             <b>${m.san}</b> <span>W:${m.win}% D:${m.draw}% B:${m.loss}%</span>
                          </div>
                          <div class="win-bar">
@@ -148,7 +151,7 @@
                             <div style="width:${m.loss}%; background:#000"></div>
                          </div>`;
             });
-            $('#db-results').html(html);
+            $('#db-results').html(html || "Aucun coup suggéré.");
         }
 
         function renderNotation() {
@@ -171,7 +174,10 @@
             });
         }
 
-        function clearData() { if(confirm("Reset?")) { localStorage.clear(); location.reload(); } }
+        function clearData() { if(confirm("Effacer votre répertoire ?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
+
+        // LANCEMENT
+        initApp();
     </script>
 </body>
 </html>
