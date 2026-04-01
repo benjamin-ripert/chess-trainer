@@ -1,10 +1,9 @@
 {
-  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -": [
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w": [
     {"san": "c4", "win": 38, "draw": 36, "loss": 26},
-    {"san": "e4", "win": 40, "draw": 30, "loss": 30},
-    {"san": "d4", "win": 39, "draw": 34, "loss": 27}
+    {"san": "e4", "win": 40, "draw": 30, "loss": 30}
   ],
-  "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq -": [
+  "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b": [
     {"san": "e5", "win": 28, "draw": 35, "loss": 37},
     {"san": "c5", "win": 25, "draw": 38, "loss": 37},
     {"san": "Nf6", "win": 26, "draw": 40, "loss": 34}
